@@ -28,10 +28,15 @@ object Application extends Controller {
 					redirectUri +"&client_secret=" +
 					FacebookManager.APPSECRET + "&code=" +
 					code;
-println(url);
 				Async {
 					WS.url(url).get().map { response =>
-						Ok(response.body);
+						val r = "access_token=(.+)&expires=([0-9]+)".r;
+						response.body match {
+							case r(accessToken, expires) =>
+								Ok("a = " + accessToken + "¥ne = " + expires);
+							case _ =>
+								Redirect("/").flashing("error" -> response.body);
+						}
 					}
 				}
 			case None =>
