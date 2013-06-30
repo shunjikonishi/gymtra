@@ -1,9 +1,10 @@
 @(appId: String, redirectUrl: String)(implicit lang: Lang, flash: Flash)
+@import models.FacebookManager
 
 @main("Fullin-Fullout") {
 <h1>Fullin-Fullout</h1>
 @flash.get("error").map{s => <div class="alert alert-error">@s</div>}
 <div>
-<a href="https://www.facebook.com/dialog/oauth?client_id=@appId&redirect_uri=@redirectUrl">Login with Facebook</a>
+<a href="https://www.facebook.com/dialog/oauth?client_id=@appId&redirect_uri=@redirectUrl&permissions=@FacebookManager.PERMISSIONS">Login with Facebook</a>
 </div>
 }

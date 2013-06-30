@@ -33,7 +33,8 @@ object Application extends Controller {
 						val r = "access_token=(.+)&expires=([0-9]+)".r;
 						response.body match {
 							case r(accessToken, expires) =>
-								Ok("a = " + accessToken + "¥ne = " + expires);
+								FacebookManager(request).login(accessToken, expires.toInt);
+								Redirect("/main");
 							case _ =>
 								Redirect("/").flashing("error" -> response.body);
 						}
@@ -43,6 +44,14 @@ object Application extends Controller {
 				Redirect("/").flashing(
 					"error" -> "Failure login"
 				);
+		}
+	}
+
+	def main = Action { implicit request =>
+		val man = FacebookManager(request);
+		man.user match {
+			case Some(user) => Ok("Welcome " + user.name);
+			case _ => Redirect("/");
 		}
 	}
 }
