@@ -51,13 +51,17 @@ class FacebookManager(appId: String, appSecret: String, permissions: String, req
 	}
 	
 	def getUser = {
-		Cache.getAs[UserKey](cacheKey)
-			.map(key =>
+		val ret = Cache.getAs[UserKey](cacheKey);
+println("getUser: " + ret);
+println("getUser2: " + Cache.get(cacheKey));
+println("getUser3: " + Cache.get(sessionId + "-Test"));
+		ret.map(key =>
 				new FacebookUser(key, getFacebook(key.accessToken))
 			);
 	}
 	
 	def login(accessToken: String, expiration: Int) = {
+println("login: " + expiration);
 		val facebook = getFacebook(accessToken);
 		val me = facebook.getMe;
 		val key = UserKey(accessToken, me.getId, me.getName);
