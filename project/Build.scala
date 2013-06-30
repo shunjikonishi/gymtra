@@ -11,12 +11,14 @@ object ApplicationBuild extends Build {
     // Add your project dependencies here,
     jdbc,
     anorm,
+    "com.github.mumoshu" %% "play2-memcached" % "0.3.0.2",
     "org.facebook4j" % "facebook4j-core" % "1.1.9"
   )
 
 
   val main = play.Project(appName, appVersion, appDependencies).settings(
     // Add your own project settings here      
+    resolvers += "Spy Repository" at "http://files.couchbase.com/maven2" 
   )
 
 }

@@ -16,6 +16,13 @@ object Application extends Controller {
 		URLEncoder.encode(url, "utf-8");
 	}
 	
+	def root = Action { implicit request =>
+		FacebookManager(request).getUser match {
+			case Some(x) => Redirect("/main");
+			case None => Redirect("/index");
+		}
+	}
+	
 	def index = Action { implicit request =>
 		Ok(views.html.index(FacebookManager.APPID, redirectUri));
 	}
@@ -49,7 +56,7 @@ object Application extends Controller {
 
 	def main = Action { implicit request =>
 		val man = FacebookManager(request);
-		man.user match {
+		man.getUser match {
 			case Some(user) => Ok("Welcome " + user.name);
 			case _ => Redirect("/");
 		}
