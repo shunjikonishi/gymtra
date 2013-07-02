@@ -4,13 +4,15 @@ import play.api.cache.Cache;
 import play.api.mvc.Request;
 import play.api.mvc.AnyContent;
 import play.api.Play.current;
+import play.api.libs.json.Json;
+import play.api.libs.json.JsSuccess;
 
 import jp.co.flect.play2.utils.Params;
 import facebook4j.FacebookFactory;
 import facebook4j.Facebook;
 import facebook4j.auth.AccessToken;
 
-case class UserKey(accessToken: String, id: String, name: String);
+case class UserKey(accessToken: String, id: String, name: String) extends java.io.Serializable
 
 class FacebookUser(key: UserKey, facebook: Facebook) {
 	def name = key.name;
@@ -31,16 +33,16 @@ object FacebookManager {
 	
 	def apply(request: Request[AnyContent]) = new FacebookManager(APPID, APPSECRET, PERMISSIONS, request);
 	
+	implicit val UserKeyFormat = Json.format[UserKey];
 }
 
 class FacebookManager(appId: String, appSecret: String, permissions: String, request: Request[AnyContent]) {
 	
+	import FacebookManager._;
+	
 	lazy val sessionId = Params(request).sessionId;
-	private def cacheKey = {
-		val ret = sessionId + "-User";
-		println("CacheKey: " + ret);
-		ret;
-	}
+	private def cacheKey = sessionId + "-User";
+	
 	
 	private def getFacebook(accessToken: String): Facebook = {
 		val ret = new FacebookFactory().getInstance();
@@ -51,21 +53,23 @@ class FacebookManager(appId: String, appSecret: String, permissions: String, req
 	}
 	
 	def getUser = {
-		val ret = Cache.getAs[UserKey](cacheKey);
-println("getUser: " + ret);
-println("getUser2: " + Cache.get(cacheKey));
-println("getUser3: " + Cache.get(sessionId + "-Test"));
-		ret.map(key =>
-				new FacebookUser(key, getFacebook(key.accessToken))
-			);
+		val ret = Cache.getAs[String](cacheKey);
+		ret.flatMap{json =>
+			Json.fromJson[UserKey](Json.parse(json)) match {
+				case JsSuccess(key, path) =>
+					Some(new FacebookUser(key, getFacebook(key.accessToken)))
+				case _ =>
+					None;
+			}
+		};
 	}
 	
 	def login(accessToken: String, expiration: Int) = {
-println("login: " + expiration);
 		val facebook = getFacebook(accessToken);
 		val me = facebook.getMe;
 		val key = UserKey(accessToken, me.getId, me.getName);
-		Cache.set(cacheKey, key, expiration);
+		val str = Json.toJson(key).toString;
+		Cache.set(cacheKey, str);
 		new FacebookUser(key, facebook);
 	}
 
