@@ -54,6 +54,7 @@ class FacebookManager(appId: String, appSecret: String, permissions: String, req
 	
 	def getUser = {
 		val ret = Cache.getAs[String](cacheKey);
+		println("getUser: " + Cache.get(cacheKey));
 		ret.flatMap{json =>
 			Json.fromJson[UserKey](Json.parse(json)) match {
 				case JsSuccess(key, path) =>
@@ -69,7 +70,8 @@ class FacebookManager(appId: String, appSecret: String, permissions: String, req
 		val me = facebook.getMe;
 		val key = UserKey(accessToken, me.getId, me.getName);
 		val str = Json.toJson(key).toString;
-		Cache.set(cacheKey, str);
+		println("login: " + expiration + ", " + str);
+		Cache.set(cacheKey, str, expiration);
 		new FacebookUser(key, facebook);
 	}
 
