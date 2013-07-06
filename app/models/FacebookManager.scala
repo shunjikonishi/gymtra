@@ -26,6 +26,10 @@ object FacebookManager {
 	val APPSECRET = sys.env("FACEBOOK_APPSECRET");
 	val PERMISSIONS = "email,read_friendlists";
 	
+	val ONE_MONTH = 60 * 60 * 24 * 30;
+	val ONE_WEEK  = 60 * 60 * 24 * 7;
+	
+	
 	private def cacheKey(request: Request[AnyContent]) = {
 		val sessionId = Params(request).sessionId;
 		sessionId + "-User";
@@ -54,7 +58,7 @@ class FacebookManager(appId: String, appSecret: String, permissions: String, req
 	
 	def getUser = {
 		val ret = Cache.getAs[String](cacheKey);
-		println("getUser: " + Cache.get(cacheKey));
+		println("getUser: " + cacheKey + ", " + Cache.get(cacheKey));
 		ret.flatMap{json =>
 			Json.fromJson[UserKey](Json.parse(json)) match {
 				case JsSuccess(key, path) =>
@@ -70,8 +74,9 @@ class FacebookManager(appId: String, appSecret: String, permissions: String, req
 		val me = facebook.getMe;
 		val key = UserKey(accessToken, me.getId, me.getName);
 		val str = Json.toJson(key).toString;
-		println("login: " + expiration + ", " + str);
-		Cache.set(cacheKey, str, expiration);
+		val cacheExp = if (expiration > ONE_MONTH) ONE_WEEK else expiration;
+		println("login: " + cacheKey + ", " + cacheExp + ", " + str);
+		Cache.set(cacheKey, str, cacheExp);
 		new FacebookUser(key, facebook);
 	}
 
