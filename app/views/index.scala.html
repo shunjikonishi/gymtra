@@ -1,7 +1,7 @@
 @(appId: String, redirectUrl: String)(implicit lang: Lang, flash: Flash)
 @import models.FacebookManager
 
-@main("Fullin-Fullout") {
+@base("Fullin-Fullout") {
 <h1>Fullin-Fullout</h1>
 @flash.get("error").map{s => <div class="alert alert-error">@s</div>}
 <div>

@@ -12,7 +12,7 @@ import facebook4j.FacebookFactory;
 import facebook4j.Facebook;
 import facebook4j.auth.AccessToken;
 
-case class UserKey(accessToken: String, id: String, name: String) extends java.io.Serializable
+case class UserKey(accessToken: String, id: String, name: String) 
 
 class FacebookUser(key: UserKey, facebook: Facebook) {
 	def name = key.name;
@@ -57,26 +57,16 @@ class FacebookManager(appId: String, appSecret: String, permissions: String, req
 	}
 	
 	def getUser = {
-		val ret = Cache.getAs[String](cacheKey);
-		println("getUser: " + cacheKey + ", " + Cache.get(cacheKey));
-		ret.flatMap{json =>
-			Json.fromJson[UserKey](Json.parse(json)) match {
-				case JsSuccess(key, path) =>
-					Some(new FacebookUser(key, getFacebook(key.accessToken)))
-				case _ =>
-					None;
-			}
-		};
+		val ret = Cache.getAs[UserKey](cacheKey);
+		ret.map(key => new FacebookUser(key, getFacebook(key.accessToken)));
 	}
 	
 	def login(accessToken: String, expiration: Int) = {
 		val facebook = getFacebook(accessToken);
 		val me = facebook.getMe;
 		val key = UserKey(accessToken, me.getId, me.getName);
-		val str = Json.toJson(key).toString;
 		val cacheExp = if (expiration > ONE_MONTH) ONE_WEEK else expiration;
-		println("login: " + cacheKey + ", " + cacheExp + ", " + str);
-		Cache.set(cacheKey, str, cacheExp);
+		Cache.set(cacheKey, key, cacheExp);
 		new FacebookUser(key, facebook);
 	}
 
