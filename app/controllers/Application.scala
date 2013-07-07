@@ -59,7 +59,7 @@ object Application extends Controller {
 		man.getUser match {
 			case Some(user) => Ok("Welcome " + user.name);
 				val url = "http://" + request.host + "/main";
-				Ok(views.html.main(user, url);
+				Ok(views.html.main(user, url));
 			case _ => Redirect("/");
 		}
 	}

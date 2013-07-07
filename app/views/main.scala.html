@@ -30,11 +30,11 @@ $(function() {
 					"filename" : filename
 				},
 				"success" : function(data) {
-					form.find("input[@name='key']").val("uploads/" + data.key);
-					form.find("input[@name='AWSAccessKeyId']").val(data.awsKey);
-					form.find("input[@name='policy']").val("uploads/" + data.policy);
-					form.find("input[@name='signature']").val("uploads/" + data.sign);
-					form.find("input[@name='Content-Type']").val("uploads/" + data.contentType);
+					form.find("input[name='key']").val("uploads/" + data.key);
+					form.find("input[name='AWSAccessKeyId']").val(data.awsKey);
+					form.find("input[name='policy']").val("uploads/" + data.policy);
+					form.find("input[name='signature']").val("uploads/" + data.sign);
+					form.find("input[name='Content-Type']").val("uploads/" + data.contentType);
 					
 					form[0].submit();
 				}
@@ -42,7 +42,7 @@ $(function() {
 		}
 	}
 	var form = $("#uploadForm");
-	form.find("input[@name='file']").change(fileChanged);
+	form.find("input[name='file']").change(fileChanged);
 })
 </script>
 }
