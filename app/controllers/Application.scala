@@ -4,23 +4,32 @@ import java.net.URLEncoder;
 import scala.concurrent.ExecutionContext.Implicits.global;
 import play.api.mvc.Controller;
 import play.api.mvc.Action;
+import play.api.mvc.AnyContent;
 import play.api.mvc.RequestHeader;
+import play.api.mvc.Request;
+import play.api.mvc.Result;
 import play.api.libs.ws.WS;
 
 import models.FacebookManager;
+import models.FacebookUser;
 
 object Application extends Controller {
 	
+	def filterAction(f: (FacebookUser, Request[AnyContent]) => Result): Action[AnyContent] = Action { request =>
+		val man = FacebookManager(request);
+		man.getUser match {
+			case Some(user) => f(user, request);
+			case None => Redirect("/index");
+		}
+	}
+
 	private def redirectUri(implicit request: RequestHeader) = {
 		val url = "http://" + request.host + "/login";
 		URLEncoder.encode(url, "utf-8");
 	}
 	
-	def root = Action { implicit request =>
-		FacebookManager(request).getUser match {
-			case Some(x) => Redirect("/main");
-			case None => Redirect("/index");
-		}
+	def root = filterAction { case (user, request) =>
+		Redirect("/main");
 	}
 	
 	def index = Action { implicit request =>
@@ -54,14 +63,13 @@ object Application extends Controller {
 		}
 	}
 
-	def main = Action { implicit request =>
-		val man = FacebookManager(request);
-		man.getUser match {
-			case Some(user) => Ok("Welcome " + user.name);
-				val url = "http://" + request.host + "/main";
-				Ok(views.html.main(user, url));
-			case _ => Redirect("/");
-		}
+	def main = filterAction { case(user, req) => implicit val request = req;
+		Ok(views.html.main(user));
+	}
+
+	def upload = filterAction { case (user, req) => implicit val request = req;
+		val url = "http://" + request.host + "/videos/s3uploaded";
+		Ok(views.html.upload(user, url))
 	}
 }
 
