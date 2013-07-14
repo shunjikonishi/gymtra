@@ -32,3 +32,12 @@ object GameKind {
 
 sealed abstract class GameKind(code: Int)
 
+object VideoStatus {
+	
+	case object Start extends VideoStatus(1);
+	case object S3Uploaded extends VideoStatus(2);
+	case object YoutubeUploaded extends VideoStatus(3);
+	
+}
+
+sealed abstract class VideoStatus(code: Int)
