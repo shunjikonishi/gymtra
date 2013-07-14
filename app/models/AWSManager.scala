@@ -44,7 +44,6 @@ class AWSManager(accessKey: String, secretKey: String, bucket: String) {
 			bucket,
 			redirectUri
 		);
-println("policy: " + policy);
 		new String(Base64.encodeBase64(policy.getBytes("utf-8")), "utf-8");
 	}
 	
@@ -65,7 +64,7 @@ println("policy: " + policy);
 	}
 
 	private def getContentType(ext: String) = {
-		"videos/mpeg";
+		"application/octet-stream";
 	}
 
 	private def sign(str: String) = {
