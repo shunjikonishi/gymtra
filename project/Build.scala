@@ -12,6 +12,7 @@ object ApplicationBuild extends Build {
     jdbc,
     anorm,
     "com.github.mumoshu" %% "play2-memcached" % "0.3.0.2",
+    "postgresql" % "postgresql" % "9.2-1002.jdbc4",
     "org.facebook4j" % "facebook4j-core" % "1.1.9"
   )
 
