@@ -6,6 +6,10 @@ import play.api.mvc.AnyContent;
 import play.api.Play.current;
 import play.api.libs.json.Json;
 import play.api.libs.json.JsSuccess;
+import play.api.libs.ws.WS;
+import scala.concurrent.ExecutionContext.Implicits.global;
+import scala.concurrent.duration._;
+import scala.concurrent.Await;
 
 import jp.co.flect.play2.utils.Params;
 import facebook4j.FacebookFactory;
@@ -61,7 +65,25 @@ class FacebookManager(appId: String, appSecret: String, permissions: String, req
 		ret.map(key => new FacebookUser(key, getFacebook(key.accessToken)));
 	}
 	
-	def login(accessToken: String, expiration: Int) = {
+	def login(code: String, redirectUri: String): Either[String, FacebookUser] = {
+		val url = "https://graph.facebook.com/oauth/access_token?client_id=" +
+			APPID + "&redirect_uri=" +
+			redirectUri +"&client_secret=" +
+			APPSECRET + "&code=" +
+			code;
+		val future = WS.url(url).get().map { response =>
+			val r = "access_token=(.+)&expires=([0-9]+)".r;
+			response.body match {
+				case r(accessToken, expires) =>
+					Right(doLogin(accessToken, expires.toInt));
+				case _ =>
+					Left(response.body);
+			}
+		}
+		Await.result(future, 10 seconds);
+	}
+	
+	private def doLogin(accessToken: String, expiration: Int) = {
 		val facebook = getFacebook(accessToken);
 		val me = facebook.getMe;
 		val key = UserKey(accessToken, me.getId, me.getName);

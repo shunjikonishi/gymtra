@@ -3,10 +3,48 @@
 @base("Fullin-Fullout") {
 <script src="/assets/javascripts/upload.js"></script>
 <h1>Fullin-Fullout</h1>
-<div>
-Hello @user.name
-</div>
 <h2>Upload</h2>
+<form id="prepareForm" action="#">
+	<ul>
+		<li><label>@Messages("title")</label><input type="text" name="title"></li>
+		<li>
+			<label>@Messages("publishScope")</label>
+			<input type="radio" name="publishScope" value="1"> @Messages("private")
+			<input type="radio" name="publishScope" value="2"> @Messages("friend")
+			<input type="radio" name="publishScope" value="3" checked> @Messages("public")
+		</li>
+		<li>
+			<label>@Messages("videoKind")</label>
+			<select name="videoKind">
+				<option value="0"></option>
+				<option value="1">@Messages("floorM")</option>
+				<option value="2">@Messages("pommelHorse")</option>
+				<option value="3">@Messages("rings")</option>
+				<option value="4">@Messages("vaultM")</option>
+				<option value="5">@Messages("parallelBars")</option>
+				<option value="6">@Messages("highBar")</option>
+				<option value="11">@Messages("vaultF")</option>
+				<option value="12">@Messages("unevenBars")</option>
+				<option value="13">@Messages("beam")</option>
+				<option value="14">@Messages("floorF")</option>
+				<option value="21">@Messages("trampoline")</option>
+				<option value="31">@Messages("tumbling")</option>
+				<option value="41">@Messages("doubleMini")</option>
+				<option value="101">@Messages("other")</option>
+			</select>
+		</li>
+		<li>
+			<label>@Messages("gameKind")</label>
+			<input type="radio" name="gameKind" value="practice" checked> @Messages("practice")
+			<input type="radio" name="gameKind" value="game"> @Messages("game")
+		</li>
+		<li><label>@Messages("videoDate")</label><input type="text" name="videoDate"></li>
+		<li>
+			<label>@Messages("description")</label>
+			<textarea name="description" cols="80" rows="10"></textarea>
+		</li>
+	</ul>
+</form>
 <form id="uploadForm" action="https://fullin-fullout.s3.amazonaws.com/" method="post" enctype="multipart/form-data">
 	<input type="hidden" name="acl" value="private"> 
 	<input type="hidden" name="success_action_redirect" value="@redirectUri">
@@ -16,9 +54,11 @@ Hello @user.name
 	<input type="hidden" name="policy" value="">
 	<input type="hidden" name="signature" value="">
 	<input type="hidden" name="Content-Type" value="">
-	File to upload to S3: 
-	<input name="file" type="file"> 
+	<ul>
+		<li><label>@Messages("file")</label><input name="file" type="file"></li>
+	</ul>
 </form> 
+<button id="btnPrepare">@Messages("upload")</button>
 <script>
 $(function() {
 	var uploder = new fullfull.Uploader("#uploadForm");

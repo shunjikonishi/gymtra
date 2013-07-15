@@ -1,6 +1,46 @@
 package models;
 
-object VideoKind {
+import play.api.data.format.Formatter;
+import play.api.data.FormError;
+import java.util.Date;
+
+trait EnumObject[T <:EnumClass] {
+	
+	val values: Array[T];
+	
+	def fromCode(code: Int): Option[T] = values.filter(_.code == code).headOption;
+	
+	val format = new Formatter[T] {
+		override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], T] = 
+			data.get(key)
+				.flatMap(v => fromCode(v.toInt))
+				.toRight(Seq(FormError(key, "invalidFormat: class=" + getClass.getSimpleName, Nil)));
+		
+		override def unbind(key: String, value: T) = Map(key -> value.code.toString);
+	}
+}
+
+trait EnumClass {
+	val code: Int;
+	
+}
+
+object PublishScope extends EnumObject[PublishScope] {
+	
+	case object Private extends PublishScope(1, "private");
+	case object Friends extends PublishScope(11, "friends");
+	case object Public extends PublishScope(21, "public");
+	
+	val values: Array[PublishScope] = Array(
+		Private,
+		Friends,
+		Public
+	);
+}
+
+sealed abstract class PublishScope(val code: Int, val name: String) extends EnumClass;
+
+object VideoKind extends EnumObject[VideoKind] {
 	
 	case object FloorM extends VideoKind(1, "Floor");
 	case object PommelHorse extends VideoKind(2, "Pommel Horse");
@@ -20,24 +60,74 @@ object VideoKind {
 	
 	case object Other extends VideoKind(101, "Other");
 	
+	val values: Array[VideoKind] = Array(
+		FloorM,
+		PommelHorse,
+		Rings,
+		VaultM,
+		HorizontalBars,
+		HighBar,
+		VaultW,
+		UnevenBars,
+		Beam,
+		FloorW,
+		Trampoline,
+		Tumbling,
+		DoubleMini,
+		Other
+	);
 }
 
-sealed abstract class VideoKind(code: Int, name: String) 
+sealed abstract class VideoKind(val code: Int, val name: String) extends EnumClass;
 
-object GameKind {
+object GameKind extends EnumObject[GameKind] {
 	
-	case object Game extends GameKind(1);
-	case object Practice extends GameKind(2);
+	case object Practice extends GameKind(1);
+	case object Game extends GameKind(2);
+	
+	val values: Array[GameKind] = Array(
+		Practice,
+		Game
+	);
 }
 
-sealed abstract class GameKind(code: Int)
+sealed abstract class GameKind(val code: Int) extends EnumClass;
 
-object VideoStatus {
+object VideoStatus extends EnumObject[VideoStatus] {
 	
 	case object Start extends VideoStatus(1);
 	case object S3Uploaded extends VideoStatus(2);
 	case object YoutubeUploaded extends VideoStatus(3);
 	
+	val values: Array[VideoStatus] = Array(
+		Start,
+		S3Uploaded,
+		YoutubeUploaded
+	);
 }
 
-sealed abstract class VideoStatus(code: Int)
+sealed abstract class VideoStatus(val code: Int) extends EnumClass;
+
+case class VideoInfo(
+	id: Int,
+	facebookId: Int,
+	status: VideoStatus,
+	title: String,
+	publishScope: PublishScope,
+	videoKind: VideoKind,
+	gameKind: GameKind,
+	videoDate: Option[Date],
+	description: Option[String],
+	s3filename: String,
+	youtubeId: Option[String]
+);
+
+case class PrepareInfo(
+	title: String,
+	publishScope: PublishScope,
+	videoKind: VideoKind,
+	gameKind: GameKind,
+	videoDate: Option[Date],
+	description: Option[String],
+	filename: String
+);

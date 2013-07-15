@@ -39,22 +39,9 @@ object Application extends Controller {
 	def login = Action { implicit request =>
 		request.getQueryString("code") match {
 			case Some(code) =>
-				val url = "https://graph.facebook.com/oauth/access_token?client_id=" +
-					FacebookManager.APPID + "&redirect_uri=" +
-					redirectUri +"&client_secret=" +
-					FacebookManager.APPSECRET + "&code=" +
-					code;
-				Async {
-					WS.url(url).get().map { response =>
-						val r = "access_token=(.+)&expires=([0-9]+)".r;
-						response.body match {
-							case r(accessToken, expires) =>
-								FacebookManager(request).login(accessToken, expires.toInt);
-								Redirect("/main");
-							case _ =>
-								Redirect("/").flashing("error" -> response.body);
-						}
-					}
+				FacebookManager(request).login(code, redirectUri) match {
+					case Left(e) => Redirect("/").flashing("error" -> e);
+					case Right(user) => Redirect("/main");
 				}
 			case None =>
 				Redirect("/").flashing(
