@@ -1,6 +1,7 @@
 @(user: models.FacebookUser, redirectUri: String)(implicit lang: Lang, flash: Flash)
 
 @base("Fullin-Fullout") {
+<script src="/assets/javascripts/upload.js"></script>
 <h1>Fullin-Fullout</h1>
 <div>
 Hello @user.name
@@ -20,30 +21,7 @@ Hello @user.name
 </form> 
 <script>
 $(function() {
-	function fileChanged() {
-		var filename = $(this).val();
-		if (filename) {
-			$.ajax({
-				"url" : "/videos/prepareUpload",
-				"type" : "post",
-				"data" : {
-					"filename" : filename
-				},
-				"success" : function(data) {
-					console.log(JSON.stringify(data));
-					form.find("input[name='key']").val("videos/" + data.key);
-					form.find("input[name='AWSAccessKeyId']").val(data.accessKey);
-					form.find("input[name='policy']").val(data.policy);
-					form.find("input[name='signature']").val(data.signature);
-					form.find("input[name='Content-Type']").val(data.contentType);
-					
-					form[0].submit();
-				}
-			});
-		}
-	}
-	var form = $("#uploadForm");
-	form.find("input[name='file']").change(fileChanged);
+	var uploder = new fullfull.Uploader("#uploadForm");
 })
 </script>
 }
