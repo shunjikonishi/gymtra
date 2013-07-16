@@ -10,8 +10,8 @@
 		<li>
 			<label>@Messages("publishScope")</label>
 			<input type="radio" name="publishScope" value="1"> @Messages("private")
-			<input type="radio" name="publishScope" value="2"> @Messages("friend")
-			<input type="radio" name="publishScope" value="3" checked> @Messages("public")
+			<input type="radio" name="publishScope" value="11"> @Messages("friend")
+			<input type="radio" name="publishScope" value="21" checked> @Messages("public")
 		</li>
 		<li>
 			<label>@Messages("videoKind")</label>
@@ -35,8 +35,8 @@
 		</li>
 		<li>
 			<label>@Messages("gameKind")</label>
-			<input type="radio" name="gameKind" value="practice" checked> @Messages("practice")
-			<input type="radio" name="gameKind" value="game"> @Messages("game")
+			<input type="radio" name="gameKind" value="1" checked> @Messages("practice")
+			<input type="radio" name="gameKind" value="2"> @Messages("game")
 		</li>
 		<li><label>@Messages("videoDate")</label><input type="text" name="videoDate"></li>
 		<li>
@@ -55,13 +55,13 @@
 	<input type="hidden" name="signature" value="">
 	<input type="hidden" name="Content-Type" value="">
 	<ul>
-		<li><label>@Messages("file")</label><input name="file" type="file"></li>
+		<li><label>@Messages("file")</label><input id="file" name="file" type="file"></li>
 	</ul>
 </form> 
 <button id="btnPrepare">@Messages("upload")</button>
 <script>
 $(function() {
-	var uploder = new fullfull.Uploader("#uploadForm");
+	var uploder = new fullfull.Uploader();
 })
 </script>
 }

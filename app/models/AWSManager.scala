@@ -6,7 +6,6 @@ import java.text.SimpleDateFormat;
 import org.apache.commons.codec.binary.Base64;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import play.api.libs.json.Json;
 
 case class UploadInfo(
 	filename: String,
@@ -31,7 +30,6 @@ object AWSManager {
 ["content-length-range",0,1048576000]]}""";
 
 	def apply(bucket: String) = new AWSManager(ACCESS_KEY, SECRET_KEY, bucket);
-	implicit val uploadInfoFormat = Json.format[UploadInfo];
 }
 
 class AWSManager(accessKey: String, secretKey: String, bucket: String) {
