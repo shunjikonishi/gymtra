@@ -29,13 +29,13 @@ console.log("test3: " + JSON.stringify(data));
 			"data" : data,
 			"success" : function(data) {
 console.log("test4: " + JSON.stringify(data));
-				form.find("input[name='key']").val("videos/" + data.key);
-				form.find("input[name='AWSAccessKeyId']").val(data.accessKey);
-				form.find("input[name='policy']").val(data.policy);
-				form.find("input[name='signature']").val(data.signature);
-				form.find("input[name='Content-Type']").val(data.contentType);
+				uploadForm.find("input[name='key']").val("videos/" + data.key);
+				uploadForm.find("input[name='AWSAccessKeyId']").val(data.accessKey);
+				uploadForm.find("input[name='policy']").val(data.policy);
+				uploadForm.find("input[name='signature']").val(data.signature);
+				uploadForm.find("input[name='Content-Type']").val(data.contentType);
 				
-				form[0].submit();
+				uploadForm[0].submit();
 			}
 		});
 	});

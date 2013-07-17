@@ -1,7 +1,6 @@
 package controllers
 
 import java.net.URLEncoder;
-import java.io.File;
 import scala.concurrent.ExecutionContext.Implicits.global;
 import play.api.mvc.Controller;
 import play.api.mvc.Action;
@@ -24,8 +23,7 @@ import play.api.data.Forms.optional;
 
 import models.FacebookUser;
 import models.FacebookManager;
-import models.AWSManager;
-import models.DatabaseManager;
+import models.VideoManager;
 import models.PublishScope;
 import models.VideoKind;
 import models.GameKind;
@@ -37,8 +35,6 @@ import jp.co.flect.play2.utils.Params;
 object Videos extends Controller {
 	
 	val log = Logger(getClass);
-	val s3man = AWSManager("fullin-fullout");
-	val dbman = DatabaseManager();
 	
 	private def filterAction(f: (FacebookUser, Request[AnyContent]) => Result): Action[AnyContent] = Action { request =>
 		val man = FacebookManager(request);
@@ -69,14 +65,25 @@ object Videos extends Controller {
 			println(formData.errors);
 			BadRequest;
 		} else {
-			val prepareInfo = formData.get;
-			val uploadInfo = s3man.prepare(new File(prepareInfo.filename).getName, redirectUri);
-			dbman.start(user, prepareInfo, uploadInfo);
+			val man = VideoManager(user);
+			val uploadInfo = man.start(formData.get, redirectUri);
 			Ok(Json.toJson(uploadInfo));
 		}
 	}
 	
-	def s3uploaded = Action { implicit request =>
-		Ok(request.path);
+	def s3uploaded = filterAction { case (user, req) => implicit val request = req;
+		request.getQueryString("key") match {
+			case Some(key) if key.startsWith("videos/") =>
+				try {
+					VideoManager(user).uploadYoutube(key.substring("videos/".length));
+					Redirect("/main");
+				} catch {
+					case e: Exception =>
+						e.printStackTrace;
+						InternalServerError(e.toString)
+				}
+			case None =>
+				BadRequest;
+		}
 	}
 }

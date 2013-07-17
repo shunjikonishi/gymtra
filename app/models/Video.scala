@@ -96,13 +96,13 @@ sealed abstract class GameKind(val code: Int) extends EnumClass;
 object VideoStatus extends EnumObject[VideoStatus] {
 	
 	case object Start extends VideoStatus(1);
-	case object S3Uploaded extends VideoStatus(2);
-	case object YoutubeUploaded extends VideoStatus(3);
+	case object Upload extends VideoStatus(2);
+	case object Ready extends VideoStatus(3);
 	
 	val values: Array[VideoStatus] = Array(
 		Start,
-		S3Uploaded,
-		YoutubeUploaded
+		Upload,
+		Ready
 	);
 }
 

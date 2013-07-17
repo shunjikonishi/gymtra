@@ -9,7 +9,7 @@ object GoogleManager {
 	val APIKEY       = sys.env("GOOGLE_APIKEY");
 	val DEVELOPERKEY = sys.env("GOOGLE_DEVELOPERKEY");
 	
-	def apply() {
+	def apply() = {
 		val service = new YouTubeService(APIKEY, DEVELOPERKEY);
 		service.setUserCredentials(USERNAME, PASSWORD);
 		new GoogleManager(service);
