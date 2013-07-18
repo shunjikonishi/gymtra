@@ -1,11 +1,12 @@
 package models;
 
+import java.util.Date;
 import jp.co.flect.play2.utils.DatabaseUtility;
 import anorm._;
 
 object DatabaseManager {
 	
-	val SELECT_STATEMENT = """
+	private val SELECT_STATEMENT = """
 		SELECT ID,
 		       FACEBOOK_ID,
 		       PUBLISH_SCOPE,
@@ -21,10 +22,40 @@ object DatabaseManager {
 		  FROM UPLOADED_VIDEOS
 	""";
 
+	private def rowToVideo(row: Row) = {
+		val id = row[Int]("id");
+		val facebookId = row[Long] ("facebook_id");
+		val status = VideoStatus.fromCode(row[Int]("status")).get;
+		val title = row[String]("title");
+		val publishScope = PublishScope.fromCode(row[Int]("publish_scope")).get;
+		val videoKind = VideoKind.fromCode(row[Int]("video_kind")).get;
+		val gameKind = GameKind.fromCode(row[Int]("gameKind")).get;
+		val videoDate = row[Option[Date]]("video_date");
+		val description = row[Option[String]]("description");
+		val s3filename = row[String]("s3_filename");
+		val youtubeId = row[Option[String]]("youtube_id");
+		
+		VideoInfo(
+			id,
+			facebookId,
+			status,
+			title,
+			publishScope,
+			videoKind,
+			gameKind,
+			videoDate,
+			description,
+			s3filename,
+			youtubeId
+		);
+	}
+	
 	def apply() = new DatabaseManager("default");
 }
 
 class DatabaseManager(val databaseName: String) extends DatabaseUtility {
+	
+	import DatabaseManager._;
 	
 	def start(user: FacebookUser, prepareInfo: PrepareInfo, uploadInfo: UploadInfo): Long = withTransaction { implicit con =>
 		val now = new java.sql.Timestamp(System.currentTimeMillis);
@@ -73,20 +104,20 @@ class DatabaseManager(val databaseName: String) extends DatabaseUtility {
 	}
 
 	def upload(key: String) = withTransaction { implicit con =>
-		val id = SQL("SELECT ID FROM UPLOADED_VIDEOS WHERE S3_FILENAME = {key}")
+		val video = SQL(SELECT_STATEMENT + " WHERE S3_FILENAME = {key}")
 			.on("key" -> key)
-			.apply().map(row => row[Long]("ID")).head;
+			.apply().map(rowToVideo(_)).head;
 		SQL("""
 			UPDATE UPLOADED_VIDEOS
 			   SET STATUS = {status},
 			       UPDATE_DATE = {update_date}
-			 WHERE S3_FILENAME = {key}
+			 WHERE ID = {id}
 			"""
 			).on(
-				"key" -> key,
+				"id" -> video.id,
 				"status" -> VideoStatus.Upload.code,
 				"update_date" -> new java.sql.Timestamp(System.currentTimeMillis)
 			).executeUpdate;
-		id;
+		video.copy(status=VideoStatus.Upload);
 	}
 }

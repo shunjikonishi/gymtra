@@ -110,7 +110,7 @@ sealed abstract class VideoStatus(val code: Int) extends EnumClass;
 
 case class VideoInfo(
 	id: Int,
-	facebookId: Int,
+	facebookId: Long,
 	status: VideoStatus,
 	title: String,
 	publishScope: PublishScope,
