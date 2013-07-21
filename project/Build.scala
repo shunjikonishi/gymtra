@@ -13,6 +13,8 @@ object ApplicationBuild extends Build {
     anorm,
     "com.github.mumoshu" %% "play2-memcached" % "0.3.0.2",
     "postgresql" % "postgresql" % "9.2-1003.jdbc4" from "http://jdbc.postgresql.org/download/postgresql-9.2-1003.jdbc4.jar",
+    "com.amazonaws" % "aws-java-sdk" % "1.5.0",
+    "javax.mail" % "mail" % "1.4.7",
     "org.facebook4j" % "facebook4j-core" % "1.1.9"
   )
 

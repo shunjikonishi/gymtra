@@ -1,6 +1,7 @@
 package models;
 
 import java.util.Date;
+import java.sql.Connection;
 import jp.co.flect.play2.utils.DatabaseUtility;
 import anorm._;
 
@@ -29,7 +30,7 @@ object DatabaseManager {
 		val title = row[String]("title");
 		val publishScope = PublishScope.fromCode(row[Int]("publish_scope")).get;
 		val videoKind = VideoKind.fromCode(row[Int]("video_kind")).get;
-		val gameKind = GameKind.fromCode(row[Int]("gameKind")).get;
+		val gameKind = GameKind.fromCode(row[Int]("game_kind")).get;
 		val videoDate = row[Option[Date]]("video_date");
 		val description = row[Option[String]]("description");
 		val s3filename = row[String]("s3_filename");
@@ -103,10 +104,47 @@ class DatabaseManager(val databaseName: String) extends DatabaseUtility {
 		).executeInsert().getOrElse(0);
 	}
 
-	def upload(key: String) = withTransaction { implicit con =>
+	def download(key: String) = withTransaction { implicit con =>
+		println("download: " + key);
 		val video = SQL(SELECT_STATEMENT + " WHERE S3_FILENAME = {key}")
 			.on("key" -> key)
 			.apply().map(rowToVideo(_)).head;
+		val status = VideoStatus.Download;
+		updateStatus(con, video.id, status);
+		video.copy(status=status);
+	}
+	
+	def upload(video: VideoInfo) = withTransaction { implicit con =>
+		val status = VideoStatus.Upload;
+		updateStatus(con, video.id, status);
+		video.copy(status=status);
+	}
+	
+	def delete(video: VideoInfo) = withTransaction { implicit con =>
+		val status = VideoStatus.Deleted;
+		updateStatus(con, video.id, status);
+		video.copy(status=status);
+	}
+	
+	def finish(video: VideoInfo) = withTransaction { implicit con =>
+		val status = VideoStatus.Ready;
+		SQL("""
+			UPDATE UPLOADED_VIDEOS
+			   SET STATUS = {status},
+			       YOUTUBE_ID = {youtube_id},
+			       UPDATE_DATE = {update_date}
+			 WHERE ID = {id}
+			"""
+			).on(
+				"id" -> video.id,
+				"status" -> status.code,
+				"youtube_id" -> video.youtubeId,
+				"update_date" -> new java.sql.Timestamp(System.currentTimeMillis)
+			).executeUpdate()(con);
+		video.copy(status=status);
+	}
+	
+	private def updateStatus(con: Connection, id: Int, status: VideoStatus) = {
 		SQL("""
 			UPDATE UPLOADED_VIDEOS
 			   SET STATUS = {status},
@@ -114,10 +152,37 @@ class DatabaseManager(val databaseName: String) extends DatabaseUtility {
 			 WHERE ID = {id}
 			"""
 			).on(
-				"id" -> video.id,
-				"status" -> VideoStatus.Upload.code,
+				"id" -> id,
+				"status" -> status.code,
 				"update_date" -> new java.sql.Timestamp(System.currentTimeMillis)
-			).executeUpdate;
-		video.copy(status=VideoStatus.Upload);
+			).executeUpdate()(con);
+	}
+	
+	def getVideoCount(facebookId: Long) = withConnection { implicit con =>
+		SQL("SELECT COUNT(*) AS CNT FROM UPLOADED_VIDEOS WHERE FACEBOOK_ID = {facebookId} AND STATUS <> {status}")
+			.on(
+				"facebookId" -> facebookId,
+				"status" -> VideoStatus.Deleted.code
+			)
+			.apply().map(row => row[Long]("CNT").toInt)
+			.head;
+	}
+	
+	def getVideoList(facebookId: Long, offset: Int = 0, limit: Int = 10) = withConnection { implicit con =>
+		SQL(SELECT_STATEMENT + " WHERE FACEBOOK_ID = {facebookId} AND STATUS <> {status}" +
+				"ORDER BY UPDATE_DATE DESC LIMIT {limit} OFFSET {offset}"
+			).on(
+				"facebookId" -> facebookId,
+				"status" -> VideoStatus.Deleted.code,
+				"offset" -> offset,
+				"limit" -> limit
+			)
+			.apply().map(rowToVideo(_)).toList;
+	}
+	
+	def getVideo(id: Int) = withConnection { implicit con =>
+		SQL(SELECT_STATEMENT + " WHERE ID = {id}")
+			.on("id" -> id)
+			.apply().map(rowToVideo(_)).headOption;
 	}
 }

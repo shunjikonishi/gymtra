@@ -10,6 +10,7 @@ import play.api.mvc.Request;
 import play.api.mvc.Result;
 import play.api.libs.ws.WS;
 
+import models.VideoManager;
 import models.FacebookManager;
 import models.FacebookUser;
 
@@ -51,7 +52,10 @@ object Application extends Controller {
 	}
 
 	def main = filterAction { case(user, req) => implicit val request = req;
-		Ok(views.html.main(user));
+		val offset = request.getQueryString("offset").getOrElse("0").toInt;
+		val size = request.getQueryString("size").getOrElse("10").toInt;
+		val list = VideoManager(user).getMyVideoList(offset, size);
+		Ok(views.html.main(user, list));
 	}
 
 	def upload = filterAction { case (user, req) => implicit val request = req;

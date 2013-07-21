@@ -96,13 +96,17 @@ sealed abstract class GameKind(val code: Int) extends EnumClass;
 object VideoStatus extends EnumObject[VideoStatus] {
 	
 	case object Start extends VideoStatus(1);
-	case object Upload extends VideoStatus(2);
-	case object Ready extends VideoStatus(3);
+	case object Download extends VideoStatus(2);
+	case object Upload extends VideoStatus(3);
+	case object Ready extends VideoStatus(4);
+	case object Deleted extends VideoStatus(99);
 	
 	val values: Array[VideoStatus] = Array(
 		Start,
+		Download,
 		Upload,
-		Ready
+		Ready,
+		Deleted
 	);
 }
 
@@ -120,7 +124,12 @@ case class VideoInfo(
 	description: Option[String],
 	s3filename: String,
 	youtubeId: Option[String]
-);
+) {
+	def imageUrl(index: Int) = youtubeId match {
+		case Some(s) => "http://img.youtube.com/vi/" + s + "/" + index + ".jpg";
+		case None => "/assets/images/noVideo.jpg";
+	}
+}
 
 case class PrepareInfo(
 	title: String,
@@ -131,3 +140,12 @@ case class PrepareInfo(
 	description: Option[String],
 	filename: String
 );
+
+case class VideoList(allCount: Int, offset: Int, size: Int, list: List[VideoInfo]) {
+	def hasPrev = offset != 0;
+	def hasNext = allCount > offset + list.size;
+	
+	def prevOffset = if (offset - size < 0) 0 else offset - size;
+	def nextOffset = offset + size;
+	
+}

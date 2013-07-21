@@ -20,7 +20,7 @@ case class UserKey(accessToken: String, id: String, name: String)
 
 class FacebookUser(key: UserKey, facebook: Facebook) {
 	def name = key.name;
-	def id = key.id;
+	def id = key.id.toLong;
 	
 }
 

@@ -1,11 +1,15 @@
 package models;
 
+import java.io.File;
 import java.util.UUID;
 import java.util.Date;
 import java.text.SimpleDateFormat;
 import org.apache.commons.codec.binary.Base64;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.s3.model.GetObjectRequest;
 
 case class UploadInfo(
 	filename: String,
@@ -70,5 +74,19 @@ class AWSManager(accessKey: String, secretKey: String, bucket: String) {
 		hmac.init(new SecretKeySpec(secretKey.getBytes("utf-8"), "HmacSHA1"));
 		new String(Base64.encodeBase64(hmac.doFinal(str.getBytes("utf-8"))))
 			.replaceAll("¥n", "");
+	}
+	
+	def download(key: String): File = {
+		val file = File.createTempFile("tmp", key.substring(key.lastIndexOf(".")));
+		file.deleteOnExit;
+		
+		val client = new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey));
+		client.getObject(new GetObjectRequest(bucket, key), file);
+		file;
+	}
+	
+	def delete(key: String) = {
+		val client = new AmazonS3Client(new BasicAWSCredentials(accessKey, secretKey));
+		client.deleteObject(bucket, key);
 	}
 }

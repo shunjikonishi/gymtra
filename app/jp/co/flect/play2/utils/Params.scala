@@ -26,7 +26,7 @@ class Params(request: Request[AnyContent]) {
 	
 	def getAll(name: String) = {
 		request.body.asFormUrlEncoded.flatMap {
-			_.get(name).map(_.head)
+			_.get(name)
 		}
 	}
 }

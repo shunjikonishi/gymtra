@@ -1,16 +1,20 @@
 package controllers
 
 import java.net.URLEncoder;
-import scala.concurrent.ExecutionContext.Implicits.global;
-import play.api.mvc.Controller;
+
+import play.api.Logger;
+import play.api.Play.current;
+import play.api.libs.concurrent.Akka;
+import play.api.libs.concurrent.Execution.Implicits.defaultContext;
+import play.api.libs.json.Json;
+import play.api.libs.ws.WS;
 import play.api.mvc.Action;
 import play.api.mvc.AnyContent;
-import play.api.mvc.Result;
+import play.api.mvc.Controller;
 import play.api.mvc.Request;
 import play.api.mvc.RequestHeader;
-import play.api.Logger;
-import play.api.libs.ws.WS;
-import play.api.libs.json.Json;
+import play.api.mvc.Result;
+import scala.concurrent.duration.DurationInt;
 
 import play.api.data.Form;
 import play.api.data.Forms.of;
@@ -36,7 +40,7 @@ object Videos extends Controller {
 	
 	val log = Logger(getClass);
 	
-	private def filterAction(f: (FacebookUser, Request[AnyContent]) => Result): Action[AnyContent] = Action { request =>
+	def filterAction(f: (FacebookUser, Request[AnyContent]) => Result): Action[AnyContent] = Action { request =>
 		val man = FacebookManager(request);
 		man.getUser match {
 			case Some(user) => f(user, request);
@@ -75,7 +79,9 @@ object Videos extends Controller {
 		request.getQueryString("key") match {
 			case Some(key) if key.startsWith("videos/") =>
 				try {
-					VideoManager(user).uploadYoutube(key.substring("videos/".length));
+					Akka.system.scheduler.scheduleOnce(0 seconds) {
+						VideoManager(user).uploadYoutube(key);
+					}
 					Redirect("/main");
 				} catch {
 					case e: Exception =>
@@ -84,6 +90,18 @@ object Videos extends Controller {
 				}
 			case None =>
 				BadRequest;
+		}
+	}
+	
+	def deleteVideo = filterAction { case (user, req) => implicit val request = req;
+		Params(request).get("videoId") match {
+			case Some(id) =>
+				if (VideoManager(user).delete(id.toInt)) {
+					Redirect("/main");
+				} else {
+					Ok("Can not delete video: " + id);
+				}
+			case None => BadRequest;
 		}
 	}
 }

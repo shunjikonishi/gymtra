@@ -1,4 +1,4 @@
-@(user: models.FacebookUser)(implicit lang: Lang, flash: Flash)
+@(user: models.FacebookUser, list: VideoList)(implicit lang: Lang, flash: Flash)
 
 @base("Fullin-Fullout") {
 <h1>Fullin-Fullout</h1>
@@ -8,4 +8,33 @@ Hello @user.name
 <div>
 	<a href="upload">Upload</a>
 </div>
+<div>
+	<h2>My Video</h2>
+	<ul>
+		@list.list.map { v =>
+			<li>@v.title<br>
+				<img src="@v.imageUrl(0)" width="210"/>
+				<button class="deleteVideo" data-id="@v.id">Delete</button>
+			</li>
+		}
+	</ul>
+	<div>
+		@if(list.hasPrev) {<a href="/main?offset=list.prevOffset">Prev</a>}
+		@if(list.hasNext) {<a href="/main?offset=list.nextOffset">Prev</a>}
+	</div>
+</div>
+<form id="deleteForm" action="/videos/delete" method="post">
+	<input name="videoId" id="deleteId">
+</form>
+<script>
+$(function() {
+	console.log("test1: ");
+	$(".deleteVideo").click(function() {
+		var id = $(this).attr("data-id");
+		console.log("test: " + id);
+		$("#deleteId").val(id);
+		$("#deleteForm")[0].submit();
+	});
+})
+</script>
 }
